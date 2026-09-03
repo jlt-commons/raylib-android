@@ -69,10 +69,10 @@
   []
   ;; Logged rather than assumed. jolt picks its socket constants and sockaddr
   ;; layout from os.name, and on Android the right answer is "Linux" — Bionic
-  ;; is close enough to glibc for jolt.nrepl's sockets. When that answer was
-  ;; wrong on iOS (before 0.8.0), socket() came back EINVAL and
-  ;; jolt.nrepl/start died with "socket() failed". If that line ever appears in
-  ;; logcat, this is the first thing to check.
+  ;; is close enough to glibc for jolt.nrepl's sockets. A wrong answer there
+  ;; makes socket() fail with EINVAL and jolt.nrepl/start die with "socket()
+  ;; failed", which has happened on another platform, so if that line ever
+  ;; appears in logcat this is the first thing to check.
   (rl/log "live: os.name" (pr-str (System/getProperty "os.name"))
           "os.arch" (pr-str (System/getProperty "os.arch")))
   (start-nrepl! nil)

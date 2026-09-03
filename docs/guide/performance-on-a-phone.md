@@ -3,24 +3,23 @@
 What actually costs time when Clojure draws through raylib on a phone, in the
 order the measurements arrived rather than the order that makes us look clever.
 
-**Every number here was read off an iPhone 17 Pro on iOS 26.6.1**, over the
-app's own nREPL while it was running — this guide came from
-[raylib-ios](https://github.com/jlt-commons/raylib-ios), the sibling project
-this one was ported from, and none of it has been measured again on Android.
-The scenes are the same files and the loop is the same shape, so the *shape* of
-every finding below carries over; the absolute numbers should not be quoted as
-Android's until someone re-runs them. If anything they are pessimistic here,
-since this port runs native arm64 where the iPhone ran bytecode.
+**Every number here was read off a phone**, over the app's own nREPL while it
+was running — but off the sibling build this project was ported from, not off
+an Android device. The scenes are the same files and the loop is the same
+shape, so the *shape* of every finding below carries over; the absolute numbers
+should not be quoted as Android's until someone re-runs them. If anything they
+are pessimistic here, because that build ran an interpreter where this one runs
+native arm64.
 
 The headline, because it inverts the obvious guess: **the FFI is not the
 bottleneck, and the sequence machinery is.**
 
 ## The obvious guess, and why it was wrong
 
-Every draw call crosses libffi. On the iPhone's portable bytecode there was no
-JIT either, and the notebooks this project grew from clocked that interpreter at
-roughly 45x native on arithmetic. So the natural model is "count your draw
-calls, that is your budget", and the natural fix is to draw less.
+Every draw call crosses libffi, and the build these numbers came from had no
+JIT: the notebooks this project grew from clocked that interpreter at roughly
+45x native on arithmetic. So the natural model is "count your draw calls, that
+is your budget", and the natural fix is to draw less.
 
 Five scenes were ported in an afternoon and measured. Two were slow:
 

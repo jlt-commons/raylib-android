@@ -84,6 +84,13 @@ the glass is new. Not yet run on hardware — see the note at the top of
   honestly 0.
 - **`tools/ios/`.**
 
+---
+
+Everything below predates the Android host and describes the build this tree
+was ported from: the scenes, their tuning and the measurements those choices
+came from. It is kept because the scene code still rests on it, and because the
+numbers are the only ones anyone has taken. None of them were taken on Android.
+
 ## 2026-09-03 (later)
 
 ### Added

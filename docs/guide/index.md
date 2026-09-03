@@ -7,10 +7,9 @@ anywhere in the app.
 
 This is the orientation page. The two guides after it are the ones worth
 reading, and both are about things the device taught us rather than things the
-code implied. Both were written on the
-[iOS sibling](https://github.com/jlt-commons/raylib-ios) of this project, whose
-numbers they quote; the scenes are the same files, and this host has not yet
-been measured on Android.
+code implied. Their measurements come from the sibling build this project was
+ported from — the scenes are the same files — and nothing here has been
+measured on Android yet.
 
 ## Why this works at all
 
@@ -27,8 +26,8 @@ lifetime is one C function, and returning from it quits.
 emits `jolt_library_init`, `jolt_lookup` and `jolt_library_shutdown`, and
 `ffi/export!` publishes a Clojure function under a C-callable name. So the C
 `main` above is twenty lines: dlopen, init, look up the frame loop, call it.
-Unlike the iOS sibling — where Apple forbids generating code at run time, so
-the app had to be threaded portable bytecode — this is native arm64.
+And because Android puts no restriction on where executable pages come from,
+what it loads is native arm64 rather than an interpreter.
 
 ## Who owns the owner thread
 
@@ -42,11 +41,10 @@ chain from the activity to the Clojure loop never leaves it —
 `raylib.host/run!` — so the loop inherits the right thread by construction
 rather than by hopping onto it.
 
-Nothing here needs a run-loop-friendly loop shape, either, which is the other
-half of what the iOS host had to prove: there a blocking `while` loop starves
-the run loop that delivers touches, and it was only legal because `EndDrawing`
-reaches `SDL_PumpEvents` through three intervening functions. On Android
-`EndDrawing` polls the ALooper directly, in `PollInputEvents`, on this thread.
+A blocking frame loop is fine here, which is not true of every platform: on
+Android `EndDrawing` reaches `PollInputEvents`, which pumps the ALooper on this
+same thread, so the loop and the event source take turns once a frame rather
+than competing.
 
 The one thing that does leave the thread is an nREPL eval, which lands on
 jolt.nrepl's accept thread. So reads are free and anything calling raylib goes

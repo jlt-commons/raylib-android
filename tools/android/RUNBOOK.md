@@ -3,15 +3,14 @@
 Operating this project: first-time setup, the daily loop, live development, and
 the failures you will actually hit.
 
-> **This port has not yet been run on hardware.** The iOS runbook this file
-> replaces recorded only things that had been done; every step below is either
+> **This port has not yet been run on hardware.** Every step below is either
 > derived from the pinned raylib source (cited where it matters) or taken from
 > [jasalt/jolt-android-experiment](https://github.com/jasalt/jolt-android-experiment),
 > which proved this exact recipe — Chez cross-built for Bionic, `jolt build
 > --library`, a NativeActivity C `main` that dlopens it — on an API 35 device.
-> What is unproven here is *this* tree on *your* phone. Treat the numbers in
-> the README's performance guide as iPhone measurements until they are taken
-> again.
+> What is unproven is *this* tree on *your* phone, so treat every frame time in
+> the docs as belonging to the build this was ported from until they are taken
+> again here.
 
 ## What you need
 
@@ -122,9 +121,9 @@ between a REPL you can develop with and one you can only read with.
 
 A release image inlines across call sites. A var redefined over the nREPL then
 updates what the REPL itself sees while every already-compiled caller keeps
-calling the original, and nothing announces the split. Measured on the iOS side
-of this project, redefining `point` and asking `advance` (its caller in the same
-namespace) what it returns:
+calling the original, and nothing announces the split. Measured by redefining
+`point` and asking `advance` (its caller in the same namespace) what it
+returns:
 
 | build | `advance` sees the redefinition |
 |---|---|
@@ -133,8 +132,8 @@ namespace) what it returns:
 
 That covers plain `def` constants too: a release build will happily report
 `max-points` as 600 while the running loop still uses 1800. The cost was close
-to nothing for this workload — `--dev` held 58.5 fps against release's 58.8 on
-an iPhone. Develop on debug, ship release.
+to nothing for this workload — 58.5 fps against release's 58.8. Develop on
+debug, ship release.
 
 ### Driving the app from the REPL
 

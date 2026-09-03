@@ -25,7 +25,7 @@
 ;; re-projected every frame because the camera orbits. That is the difference
 ;; from lsystem, which holds 59 fps at 1488 segments precomputed once.
 ;;
-;; Swept on an iPhone 17 Pro, reading raylib's own GetFPS with the probe seam
+;; Swept on the phone this was tuned on, reading raylib's own GetFPS with the probe seam
 ;; calling it every frame:
 ;;
 ;;   trail   1200  1000  800  600  500  480  460  440  420  400  300  200

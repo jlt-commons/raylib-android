@@ -41,13 +41,8 @@ bird flaps on a press edge.
   <img src="docs/images/tesseract.gif" width="200" alt="A rotating 4D hypercube">
 </p>
 
-> **Every image above was captured on an iPhone**, by
-> [raylib-ios](https://github.com/jlt-commons/raylib-ios), the sibling project
-> this one was ported from. The scenes are the same files — pure `.cljc`, with
-> the host below them swapped — but nothing here has been photographed on an
-> Android device yet, and neither have the frame times further down. They are
-> kept because they show what the scenes are; replacing them is the first job
-> after this port meets a phone.
+*Captured off the sibling build this was ported from, since the host here has
+not met a device yet. The scenes are the same files.*
 
 Licensed [zlib](LICENSE), matching raylib and
 [raylib-jlt](https://github.com/jlt-commons/raylib-jlt). Third-party code and
@@ -91,12 +86,9 @@ byte-identity of the pure namespaces (jasalt/jolt-android-experiment @ 6d2b291):
 
 ## How Clojure ends up owning an Android frame loop
 
-raylib has a real Android backend, and that changes the shape of everything.
-The iOS sibling had none to use — there is no `rcore_ios.c` and raylib issue
-#330 was closed in 2018 without one — so it built raylib with `PLATFORM=SDL`
-against an SDL2 for iOS and let SDL be the platform layer. Here
 `src/platforms/rcore_android.c` is the platform layer: EGL, GLES2, touch, the
-activity lifecycle and the ALooper pump, all of it upstream and maintained.
+activity lifecycle and the ALooper pump, all of it upstream and maintained. So
+this project writes none of it, and links no SDL.
 
 What it asks of an app is one C function. At the pinned revision, lines 318-331:
 
@@ -135,11 +127,10 @@ in `deps.edn`, marked optional so the namespaces still load on a build host.
 There is no `libraylib.so` in the APK, which is why the published raylib
 bindings' own `:jolt/native` declarations would be actively wrong here.
 
-The code the phone runs is **native arm64** (`tarm64le`), not bytecode. That is
-the one place this port is unambiguously better off than the iOS one: iOS
-requires executable pages to come from a signed, immutable source, so a native
-Chez build there dies on launch with `mprotect failed` and the whole app has to
-be threaded portable bytecode. Android has no such rule.
+The code the phone runs is **native arm64** (`tarm64le`), not bytecode: Android
+puts no restriction on where executable pages come from, so Chez compiles to
+real machine code and the whole target-pack machinery in `tools/android` exists
+to produce it.
 
 ## Prerequisites
 
@@ -320,71 +311,45 @@ per-variant defaults. One shared staging directory — which is what the
 upstream experiment used — lets a release APK quietly pick up a debug library
 that is still lying there, and a debug library is the one with the nREPL in it.
 
-## Numbers, measured — on an iPhone
+## What the loop reports
 
-The frame times below were taken by the iOS sibling on an iPhone 17 Pro, over
-portable bytecode. **They are not Android numbers**, and this port has not been
-run on hardware; they are here because the loop, the scenes and the summary
-format are the same, so they are what to compare against. If anything, native
-arm64 should do better than bytecode did.
-
-```
-host: 402 x 874 points x scale 3.0 -> screen 1206 x 2622 drawable 1206 x 2622 fbo 1
-host:  300 frames, mean 17.83 ms, worst 279.0 ms      <- InitWindow lands in this window
-host:  600 frames, mean 17.03 ms, worst  17.4 ms
-host: 1200 frames, mean 17.02 ms, worst  17.1 ms
-host: 3000 frames, mean 17.03 ms, worst  17.2 ms
-host: 5400 frames, mean 17.02 ms, worst  17.1 ms
-```
-
-A 60 Hz frame is 16.67 ms, so a mean of 17.02 with a worst of 17.1 over ninety
-seconds is a loop that finishes its work and waits for vsync every single
-frame, with no outliers at all. The interpreter's cost fits inside the slack
-with room to spare: the simulation, the reducer, the twenty-odd FFI calls per
-frame and the collector all land well inside a frame. The 279 ms in the first
-window is `InitWindow` compiling shaders and building the default font.
-
-The Android host prints the same summary every 300 frames, to logcat rather
-than to a console:
+**No frame times have been taken on Android yet.** The host measures itself and
+says so every 300 frames, to logcat rather than to a console, and that summary
+is the number to trust when it exists:
 
 ```
 raylib-android: screen 1080 x 2400 px, render 1080 x 2400 density scale 3.0 — target 60 fps
 raylib-android: 300 frames, mean 16.71 ms, worst 21.3 ms, 59.8 fps
 ```
 
+A 60 Hz frame is 16.67 ms, so a mean that sits just above it with a worst close
+behind is a loop that finishes its work and waits for vsync every frame. The
+first window always looks worse than the rest, because `InitWindow` compiles
+shaders and builds the default font inside it.
+
+The rate comes from the frame times the loop already sums, never from `GetFPS`.
+
 ### `GetFPS` must be called every frame, and nothing says so
 
 Worth knowing, because it looks exactly like a broken frame rate and is not.
-
-An earlier version of this host printed `GetFPS()` in its 300-frame summary,
-and the readings decayed: 1757, 887, 590, 441, 355, 295, and on down to 98 over
-ninety seconds, while `GetFrameTime` never moved off 17.02 ms.
 
 `GetFPS` is a stateful sampler. Each call advances a 30-slot ring by one
 position, writes `GetFrameTime()/30` into that slot, and returns
 `1/sum-of-ring`. That is a frame rate only when the ring holds a full 30 slots,
 which happens only if you call it every frame. `DrawFPS` does, and it is the
 only place raylib itself ever calls it. Call it once per 300 frames instead and
-after n calls just n slots are filled, so it returns
-`1/(n * frame-time/30)`.
+after n calls just n slots are filled, so it returns `1/(n * frame-time/30)` —
+a plausible wrong number that decays as the summary interval passes.
 
-That model has no free parameters, since the slot size comes from the measured
-frame time and raylib's own `FPS_CAPTURE_FRAMES_COUNT`, and it fits all
-eighteen readings to within 0.76%. The controlled run settles it: the same
-binary running `raylib.flappy`, which draws `GetFPS` every frame, reported a
-steady 59 from the first window through 5700 frames.
+That model was fitted to eighteen such readings, to within 0.76%, so this is
+measured rather than reasoned about; the measurement is in
+[`docs/upstream-findings.md`](docs/upstream-findings.md) along with the rest of
+what this project's lineage owes upstream. `raylib.h` documents `GetFPS` as
+"Get current FPS" and never mentions the requirement, which is the one fair
+complaint.
 
-So raylib is behaving as designed and the misuse was ours. `raylib.host`
-computes the window's rate from the frame times it already sums, which needs
-nothing from raylib and cannot drift. Scenes that draw `GetFPS` every frame,
-which is `raylib.flappy` and `raylib.touch`, were always fine.
-
-The one fair complaint is upstream and small: `raylib.h` documents `GetFPS` as
-"Get current FPS" and never mentions the requirement, so calling it from a
-timer or a summary gives a plausible wrong number rather than an obviously
-wrong one. That finding and the rest of what this project's lineage owes
-upstream, including which of them still bear on an Android build, are in
-[`docs/upstream-findings.md`](docs/upstream-findings.md).
+`raylib.host` therefore computes its own rate, and scenes that draw `GetFPS`
+every frame — `raylib.flappy` and `raylib.touch` — were always fine.
 
 ## Four things about Android that look like bugs
 
@@ -394,15 +359,12 @@ upstream, including which of them still bear on an Android build, are in
   happens unless the app does something, and `raylib.gallery` reads it as one
   level up: scene, then category list, then categories, then quit. Quitting
   means returning from the loop, which returns from `main`, after which
-  `android_main` calls `ANativeActivity_finish`. An Android app may exit; the
-  iOS host had to ignore the same request.
+  `android_main` calls `ANativeActivity_finish`.
 - **There is no display cutout to dodge.** The manifest takes the fullscreen
   theme and deliberately does not opt into `shortEdges`, so under the default
-  cutout mode Android lays the window out clear of the cutout and
-  `:inset-top` is honestly 0. The iOS host had to ask UIKit for
-  `safeAreaInsets` on its first frame, because `SDL_GetDisplayUsableBounds`
-  returns `uiscreen.bounds` there and reports a top inset of 0 on a phone whose
-  real inset is 62 pt.
+  cutout mode Android lays the window out clear of the cutout and `:inset-top`
+  is honestly 0. Opt into `shortEdges` and that stops being true, and the
+  gallery's `below-the-inset` is where the arithmetic would go.
 - **raylib will not tell you the display density**, and then does. There is no
   Android implementation of `GetWindowScaleDPI`, but
   `GetMonitorPhysicalWidth` is computed as `(widthPixels/dpi)*25.4`, so
@@ -440,9 +402,9 @@ for one is pending, so the zlib licence above does not cover those parts.
   dlopened by a NativeActivity `main`.
 - [statonjr/glimmer-ios-demo](https://github.com/statonjr/glimmer-ios-demo):
   the owner loop's shape, the scene ports and most of the traps.
-- [jlt-commons/raylib-ios](https://github.com/jlt-commons/raylib-ios): this
-  tree's other seventeen-scene half, the `GetFPS` finding, the performance
-  guide and every image above.
+- [jlt-commons/raylib-ios](https://github.com/jlt-commons/raylib-ios): the
+  seventeen scenes, the `GetFPS` finding, the performance guide and the
+  captures above.
 - [raylib](https://github.com/raysan5/raylib) at
   `9f3cadf1e618f125bd9b282c7759f8cb26ce17fc`, which calls itself `6.1-dev`.
   Pinned by revision rather than by tag because the host's comments cite

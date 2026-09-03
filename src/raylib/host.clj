@@ -12,11 +12,10 @@
   GLES may be touched from.
 
   Returning from that export returns from `main()`, and `android_main` then
-  calls `ANativeActivity_finish`. An Android app may exit, unlike an iOS one,
-  which is why `finish!` exists and why Back at the top of the gallery ends the
-  activity rather than being ignored.
+  calls `ANativeActivity_finish` — which is what `finish!` is for, and why Back
+  at the top of the gallery ends the activity.
 
-  Two things the iOS host needed and this one does not. There is no framebuffer
+  Two things this host deliberately does not do. There is no framebuffer
   juggling: raylib owns the EGL window surface, renders into framebuffer 0 and
   that framebuffer is real, so nothing has to be re-bound around a frame. And
   there is no safe-area query: the manifest asks for the fullscreen theme and

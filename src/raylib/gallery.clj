@@ -362,7 +362,8 @@
   takes the fullscreen theme without opting into `shortEdges`: under the
   default cutout mode the window is laid out clear of the cutout, so there is
   nothing to dodge. The arithmetic stays because the inset is host-supplied
-  (`:inset-top`) rather than assumed, and on iOS it was 186 px."
+  (`:inset-top`) rather than assumed — opt into `shortEdges` and it starts
+  mattering."
   [m sizes top ids]
   (let [[w h] (:screen m)
         lower (fn [r] (update r :y + top))
@@ -392,8 +393,7 @@
         ;; Android's own Back, which raylib eats and hands us as KEY_BACK. It
         ;; means "up one level", and the three levels are the three branches
         ;; below: a scene closes into its category, a category's list closes
-        ;; into the categories, and Back at the top quits — which an Android
-        ;; app may do and an iOS one may not.
+        ;; into the categories, and Back at the top quits.
         hw-back?   (rl/back-pressed?)
         scene?     (= :scene (:mode gstate))
         ;; a category's scene list carries a Back of its own, which hit-test

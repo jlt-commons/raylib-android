@@ -13,9 +13,9 @@
       dependencies.
     </p>
     <p class="tagline">
-      <em>Ported from <a href="https://github.com/jlt-commons/raylib-ios">raylib-ios</a>,
-      whose iPhone captures and frame times are still the ones shown below.
-      This host has not yet met an Android device.</em>
+      <em>The captures below come off the sibling build this was ported from;
+      the scenes are the same files. This host has not yet met an Android
+      device, and no frame time here was measured on one.</em>
     </p>
     <div class="hero-actions">
       <a class="btn btn-primary" href="{{site-base}}/guide/porting-an-example.html">Read the guide</a>
@@ -92,7 +92,7 @@ flowchart LR
       </div>
       <div class="feat">
         <h4>Reading source is a hypothesis</h4>
-        <p>On iOS this project believed for a day that raylib drew into framebuffer 0 and showed nothing, because that is what the code says. The device disagreed, and an upstream bug report was withdrawn before it was filed.</p>
+        <p>This project once believed for a day that raylib drew into framebuffer 0 and showed nothing, because that is what the code said. The device disagreed, and an upstream bug report was withdrawn before it was filed.</p>
       </div>
       <div class="feat">
         <h4>Build --dev, or redefinition lies</h4>
@@ -203,13 +203,12 @@ flowchart LR
     </div>
     <p>
       generative 6 &middot; fractals 3 &middot; toys 5 &middot; games 1 &middot; three of them byte-identical to the
-      Android originals. <em>Every image and every frame rate on this page was
-      measured by the iOS sibling, on an iPhone 17 Pro over portable bytecode,
-      and none of it has been taken again on Android — the scenes are the same
-      files, so they are what to compare against. Nobody touched the device for
-      any of them: Flappy Bird is flapped by a loop running inside the app,
-      started from the nREPL. The bezel is an iPhone Mirroring window's
-      own.</em>
+      Android originals. <em>Every capture and every frame rate on this page
+      came off the sibling build this was ported from, not off an Android
+      device — the scenes are the same files, so they are what to compare
+      against rather than what to quote. Nobody touched the device for any of
+      them: Flappy Bird is flapped by a loop running inside the app, started
+      from the nREPL.</em>
     </p>
 
     <table>

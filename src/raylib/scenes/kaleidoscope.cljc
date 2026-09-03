@@ -10,7 +10,8 @@
   segments, so nothing in this file touches raylib.")
 
 (def folds 6)
-;; 60 leaves 708 lines a frame, which holds 59 fps on an iPhone 17 Pro. 90 is
+;; 60 leaves 708 lines a frame, which held 59 fps on the phone this was
+;; tuned on. 90 is
 ;; 1068 lines and about 47. The measurements are in
 ;; docs/guide/performance-on-a-phone.md.
 (def trail-length 60)

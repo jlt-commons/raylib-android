@@ -4,7 +4,7 @@
 examples. 48 of them need no input at all, and those port almost mechanically.
 This is what "almost" means, worked through with the five that are done.
 
-![Spirograph, captured on the iPhone this project was ported from](../images/spirograph.png)
+![Spirograph](../images/spirograph.png)
 
 *spirograph, the first port. Same maths as the original, a screen 1206x2622
 instead of 800x450, and a loop it no longer owns.*

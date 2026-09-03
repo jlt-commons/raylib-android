@@ -28,7 +28,7 @@
 ;; How many points before the figure resets with new parameters. The original
 ;; used 1600 at 800x450, and a phone has more room, but this is a frame-rate
 ;; number rather than an aesthetic one: every point is a line drawn every
-;; frame. Measured on an iPhone 17 Pro, 1024 points holds 55 fps, 1344 gives
+;; frame. Measured on the phone this was tuned on: 1024 points holds 55 fps, 1344 gives
 ;; 40 and 1616 gives 35. See docs/guide/performance-on-a-phone.md.
 (def max-points 1000)
 

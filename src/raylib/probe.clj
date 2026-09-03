@@ -3,11 +3,11 @@
 
   Everything here is off by default and exists to answer questions about what
   the device actually does, rather than what reading the source suggests it
-  should. That distinction earned its own namespace on iOS, where this project
-  spent a day believing raylib rendered into framebuffer 0 and the driver
-  disagreed. On Android framebuffer 0 IS the EGL window surface and the
-  question is settled — the report below asserts that rather than assuming it,
-  because the assumption is exactly the one that was wrong last time.
+  should. That distinction earned its own namespace: this project once spent a
+  day believing raylib rendered into framebuffer 0 while the driver disagreed.
+  On Android framebuffer 0 IS the EGL window surface and the question is
+  settled — the report below asserts that rather than assuming it, because the
+  assumption is exactly the one that was wrong last time.
 
   `raylib.host` requires this, reads the flags in its loop and fills in the
   atoms. The dependency runs host -> probe and never back, which is why the
@@ -59,9 +59,9 @@
 
   On Android this is expected to be plain: bound is 0 and the status is 36053
   (GL_FRAMEBUFFER_COMPLETE), because framebuffer 0 is the EGL window surface
-  and it exists. An iPhone answers 33305 (GL_FRAMEBUFFER_UNDEFINED) for the
-  same query, which is the difference this port removed a hundred lines of
-  framebuffer juggling over."
+  and it exists. A platform where the default framebuffer is a fiction answers
+  33305 (GL_FRAMEBUFFER_UNDEFINED) instead, which is the difference a hundred
+  lines of framebuffer juggling used to exist for."
   []
   {:framebuffer  (gl-int GL-FRAMEBUFFER-BINDING)
    :renderbuffer (gl-int GL-RENDERBUFFER-BINDING)

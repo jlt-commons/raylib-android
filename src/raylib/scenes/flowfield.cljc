@@ -20,7 +20,8 @@
 
 (def default-seed 31337)
 
-;; Measured on an iPhone 17 Pro, re-entering the scene at each count: 130
+;; Measured on the phone this was tuned on, re-entering the scene at each
+;; count: 130
 ;; particles gives 39 fps, 90 gives 54, 60 gives 59. 90 keeps the field
 ;; visually dense and stays comfortably above 50.
 (def default-count 90)
