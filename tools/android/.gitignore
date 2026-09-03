@@ -1,0 +1,7 @@
+# Gradle's own output, and the Jolt library build.sh stages into the APK.
+.gradle/
+build/
+app/build/
+app/src/debug/jniLibs/
+app/src/release/jniLibs/
+local.properties

@@ -1,0 +1,187 @@
+#!/usr/bin/env python3
+"""nrepl: talk to the app's nREPL over a forwarded port.
+
+    tools/android/nrepl eval 7888 '(raylib.host/state)'
+    tools/android/nrepl repl 7888
+    tools/android/nrepl describe 7888
+
+`jolt proxy` puts the device's 127.0.0.1:7888 on this machine's 7888 first.
+
+Python rather than babashka, and no third-party module, because this is the
+only piece of tooling a person needs before they have anything else installed:
+bencode is forty lines and an nREPL conversation is three messages. It exits
+non-zero on an eval-error, so the one-liners in the guides can be chained.
+"""
+import socket
+import sys
+
+USAGE = __doc__
+
+
+def encode(value):
+    if isinstance(value, bool):
+        raise TypeError("bencode has no boolean")
+    if isinstance(value, int):
+        return b"i%de" % value
+    if isinstance(value, str):
+        raw = value.encode("utf-8")
+        return b"%d:%s" % (len(raw), raw)
+    if isinstance(value, (list, tuple)):
+        return b"l" + b"".join(encode(v) for v in value) + b"e"
+    if isinstance(value, dict):
+        out = [b"d"]
+        for key in sorted(value):
+            out.append(encode(str(key)))
+            out.append(encode(value[key]))
+        return b"".join(out) + b"e"
+    raise TypeError("cannot bencode %r" % type(value))
+
+
+class Incomplete(Exception):
+    """The buffer holds the start of a value but not all of it."""
+
+
+def decode(data, at=0):
+    """Return (value, next index). Raises Incomplete if data is truncated."""
+    if at >= len(data):
+        raise Incomplete
+    lead = data[at:at + 1]
+    if lead == b"i":
+        end = data.find(b"e", at + 1)
+        if end < 0:
+            raise Incomplete
+        return int(data[at + 1:end]), end + 1
+    if lead in (b"l", b"d"):
+        items, cursor = [], at + 1
+        while True:
+            if cursor >= len(data):
+                raise Incomplete
+            if data[cursor:cursor + 1] == b"e":
+                cursor += 1
+                if lead == b"l":
+                    return items, cursor
+                if len(items) % 2:
+                    raise ValueError("dictionary with an odd item count")
+                return dict(zip(items[::2], items[1::2])), cursor
+            item, cursor = decode(data, cursor)
+            items.append(item)
+    if b"0" <= lead <= b"9":
+        colon = data.find(b":", at)
+        if colon < 0:
+            raise Incomplete
+        start = colon + 1
+        end = start + int(data[at:colon])
+        if end > len(data):
+            raise Incomplete
+        # replace, not strict: a scene's pr-str can carry anything
+        return data[start:end].decode("utf-8", "replace"), end
+    raise ValueError("not bencode at %d: %r" % (at, lead))
+
+
+class Connection:
+    def __init__(self, host, port):
+        try:
+            self.socket = socket.create_connection((host, port), timeout=10)
+        except OSError as error:
+            sys.exit(
+                "nrepl: nothing answering on %s:%s (%s).\n"
+                "  Is the port forwarded?           jolt proxy\n"
+                "  Is this a debug build?           release images carry no listener\n"
+                "  Is the activity in the foreground? Android kills a backgrounded one,\n"
+                "                                   and jolt deploy brings it back"
+                % (host, port, error.strerror or error))
+        self.buffer = b""
+
+    def send(self, message):
+        self.socket.sendall(encode(message))
+
+    def replies(self):
+        """Yield replies until one carries the "done" status."""
+        while True:
+            while True:
+                try:
+                    reply, used = decode(self.buffer)
+                except Incomplete:
+                    break
+                self.buffer = self.buffer[used:]
+                yield reply
+                if "done" in reply.get("status", []):
+                    return
+            chunk = self.socket.recv(65536)
+            if not chunk:
+                sys.exit("nrepl: the connection closed before a done status")
+            self.buffer += chunk
+
+
+def show(reply):
+    """Print one reply the way a REPL would, and say if it was an error."""
+    for key in ("out", "err"):
+        if key in reply:
+            stream = sys.stdout if key == "out" else sys.stderr
+            stream.write(reply[key])
+            stream.flush()
+    if "value" in reply:
+        print(reply["value"])
+    for key in ("ex", "root-ex"):
+        if key in reply:
+            print("nrepl: %s %s" % (key, reply[key]), file=sys.stderr)
+    return "eval-error" in reply.get("status", [])
+
+
+def one_shot(op, host, port, code=None):
+    connection = Connection(host, port)
+    message = {"op": op, "id": "1"}
+    if code is not None:
+        message["code"] = code
+    connection.send(message)
+    failed = False
+    for reply in connection.replies():
+        if "ops" in reply:
+            # describe answers one large map; the op list is the useful part
+            print(" ".join(sorted(reply["ops"])))
+        else:
+            failed = show(reply) or failed
+    return 1 if failed else 0
+
+
+def repl(host, port):
+    connection = Connection(host, port)
+    print(";; nREPL %s:%s (^D to leave; the server keeps running)" % (host, port))
+    namespace, counter = "user", 0
+    while True:
+        try:
+            line = input("%s=> " % namespace)
+        except EOFError:
+            print()
+            return 0
+        if not line.strip():
+            continue
+        counter += 1
+        connection.send({"op": "eval", "code": line, "id": str(counter),
+                         "ns": namespace})
+        for reply in connection.replies():
+            show(reply)
+            namespace = reply.get("ns", namespace)
+
+
+def main(argv):
+    if len(argv) < 2 or argv[1] in ("-h", "--help", "help"):
+        print(USAGE)
+        return 0
+    command = argv[1]
+    if command == "eval":
+        if len(argv) != 4:
+            sys.exit("usage: nrepl eval PORT CODE")
+        return one_shot("eval", "127.0.0.1", int(argv[2]), argv[3])
+    if command == "describe":
+        if len(argv) != 3:
+            sys.exit("usage: nrepl describe PORT")
+        return one_shot("describe", "127.0.0.1", int(argv[2]))
+    if command == "repl":
+        port = int(argv[2]) if len(argv) > 2 else 7888
+        return repl("127.0.0.1", port)
+    sys.exit("nrepl: no such command '%s'\n%s" % (command, USAGE))
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv))

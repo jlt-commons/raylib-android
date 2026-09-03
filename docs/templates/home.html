@@ -1,0 +1,250 @@
+{% extends "base.html" %}
+{% block title %}raylib-android: raylib on an Android phone, from Clojure{% endblock %}
+{% block body-class %}home{% endblock %}
+
+{% block content %}
+<header class="hero">
+  <div class="hero-inner">
+    <h1>raylib on an Android phone, from Clojure</h1>
+    <p class="tagline">
+      A gallery of seventeen scenes in a <strong>NativeActivity</strong>, drawn
+      by raylib and driven by <strong>Jolt</strong> (Clojure on Chez Scheme) as
+      native arm64 code. No JVM, no Kotlin, no Java anywhere in the app, and no
+      dependencies.
+    </p>
+    <p class="tagline">
+      <em>Ported from <a href="https://github.com/jlt-commons/raylib-ios">raylib-ios</a>,
+      whose iPhone captures and frame times are still the ones shown below.
+      This host has not yet met an Android device.</em>
+    </p>
+    <div class="hero-actions">
+      <a class="btn btn-primary" href="{{site-base}}/guide/porting-an-example.html">Read the guide</a>
+    </div>
+  </div>
+</header>
+
+<section id="how" class="surface">
+  <div class="inner">
+    <h2>raylib's Android backend asks for one C function</h2>
+    <p>
+      <code>src/platforms/rcore_android.c</code> is the platform layer: EGL,
+      GLES2, touch, the activity lifecycle and the ALooper pump, all upstream.
+      What it asks of an app is <code>extern int main(int, char **)</code>,
+      which <code>android_main</code> calls after storing the
+      <code>android_app</code> — and then it calls
+      <code>ANativeActivity_finish</code>, so <strong>returning from
+      <code>main</code> quits the app</strong>.
+    </p>
+    <p>
+      That <code>main</code> is twenty lines of C. It dlopens the library
+      <code>jolt build --library</code> produced, calls
+      <code>jolt_library_init</code>, resolves one name published with
+      <code>ffi/export!</code> through <code>jolt_lookup</code>, and calls it.
+      raylib is compiled from pinned source into the same
+      <code>libmain.so</code>, statically, so every <code>defcfn</code>
+      resolves against the process image — the one <code>:jolt/native</code>
+      entry in <code>deps.edn</code> names <code>libmain.so</code> itself.
+    </p>
+  </div>
+</section>
+
+<section id="thread-zero">
+  <div class="inner">
+    <h2>Who owns the owner thread</h2>
+    <p>
+      raylib and GLES may only be touched from the thread
+      <code>android_main</code> runs on, because that is where the ALooper is
+      pumped and the EGL context is current. Every arrow below stays on it, so
+      the Clojure loop inherits the right thread by construction rather than by
+      hopping onto it.
+    </p>
+    <pre class="mermaid">
+flowchart LR
+  na["NativeActivity<br/>android.app.NativeActivity"]
+  am["android_main<br/>raylib's rcore_android.c"]
+  mc["our main()<br/>20 lines of C"]
+  jl["libjoltraylib.so<br/>jolt_library_init · jolt_lookup"]
+  loop["the raylib loop<br/>InitWindow · BeginDrawing · EndDrawing"]
+  na -->|"lib_name = main"| am -->|"main(1, {raylib})"| mc -->|"dlopen + jolt_lookup"| jl --> loop
+  loop -->|"Back at the top: return the frame count"| mc
+  mc -->|"return from main"| am -->|ANativeActivity_finish| na
+    </pre>
+    <p>
+      An nREPL eval lands on jolt.nrepl's accept thread instead, which is why
+      reads are free and anything calling raylib goes through
+      <code>raylib.host/on-next-frame!</code> — a queue the loop drains at the
+      top of a frame, on the owner thread.
+    </p>
+  </div>
+</section>
+
+<section id="lessons" class="surface">
+  <div class="inner">
+    <h2>What the device taught us</h2>
+    <div class="feature-grid">
+      <div class="feat">
+        <h4>The FFI is not the bottleneck</h4>
+        <p>Penrose makes ~2400 FFI calls a frame at 59 fps, while a scene doing 1800 draws managed 18. The cost was <code>partition</code> and <code>map-indexed</code> in the draw loop, not the calls. Fixing that was <strong>3.5x</strong>.</p>
+      </div>
+      <div class="feat">
+        <h4>Allocation costs more than the call</h4>
+        <p>A helper returning <code>[x y]</code> allocates a vector per line. Removing a lazy sequence changed nothing until the allocation went too: 22 fps, then 47.</p>
+      </div>
+      <div class="feat">
+        <h4>Reading source is a hypothesis</h4>
+        <p>On iOS this project believed for a day that raylib drew into framebuffer 0 and showed nothing, because that is what the code says. The device disagreed, and an upstream bug report was withdrawn before it was filed.</p>
+      </div>
+      <div class="feat">
+        <h4>Build --dev, or redefinition lies</h4>
+        <p>A release build inlines across call sites, so a var redefined over the nREPL updates what the REPL sees while the running loop keeps calling the original. Nothing announces the split.</p>
+      </div>
+      <div class="feat">
+        <h4>An nREPL, on the phone</h4>
+        <p>jolt's built-in server binds on Android loopback and <code>adb forward</code> brings it here. Read live scene state, queue work onto the owner thread, and open a card without a finger.</p>
+      </div>
+      <div class="feat">
+        <h4>There is no stdout</h4>
+        <p>An Android app's stdout goes to <code>/dev/null</code>, so every <code>println</code> writes into nothing. Diagnostics go through <code>__android_log_write</code> instead, and <code>jolt log</code> is the console this project has.</p>
+      </div>
+      <div class="feat">
+        <h4>Back is yours, entirely</h4>
+        <p>raylib records <code>AKEYCODE_BACK</code> and then eats the event, so it never reaches Android and never sets <code>shouldClose</code>. The gallery reads it as one level up, and quitting means returning from <code>main</code>.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="scenes">
+  <div class="inner">
+    <h2>The gallery</h2>
+    <p>
+      Every scene is pure <code>.cljc</code> that runs on a build host with no
+      raylib, no NDK and no device, which is how they are tested. Three come
+      byte-identical from the
+      <a href="https://github.com/jasalt/jolt-android-experiment">Jolt Android
+      experiment</a>, sha256 verified, and were written for a different platform
+      entirely, along with three more namespaces carrying the scene contract
+      itself. The other fourteen are ports from
+      <a href="https://github.com/jlt-commons/raylib-jlt">raylib-jlt</a>.
+    </p>
+    <div class="demo-grid">
+      <a class="demo" href="{{site-base}}/guide/porting-an-example.html">
+        <img src="{{site-base}}/images/spirograph.gif" alt="A hypotrochoid drawing itself in rainbow lines" loading="lazy" width="480">
+        <figcaption>spirograph &middot; 55 fps</figcaption>
+      </a>
+      <a class="demo" href="{{site-base}}/guide/performance-on-a-phone.html">
+        <img src="{{site-base}}/images/kaleidoscope.gif" alt="A stroke mirrored into six-fold symmetry" loading="lazy" width="480">
+        <figcaption>kaleidoscope &middot; 58 fps</figcaption>
+      </a>
+      <a class="demo" href="{{site-base}}/guide/porting-an-example.html">
+        <img src="{{site-base}}/images/fireworks.gif" alt="Rockets bursting into falling sparks" loading="lazy" width="480">
+        <figcaption>fireworks &middot; 58 fps</figcaption>
+      </a>
+      <a class="demo" href="{{site-base}}/guide/porting-an-example.html">
+        <img src="{{site-base}}/images/boids.gif" alt="Forty-five boids flocking" loading="lazy" width="480">
+        <figcaption>boids &middot; 52 fps</figcaption>
+      </a>
+      <a class="demo" href="{{site-base}}/images/flappy-bird.png">
+        <img src="{{site-base}}/images/flappy-bird.gif" alt="Flappy Bird, flapped by a loop inside the app" loading="lazy" width="480">
+        <figcaption>flappy-bird &middot; unchanged from Android</figcaption>
+      </a>
+      <a class="demo" href="{{site-base}}/guide/porting-an-example.html">
+        <img src="{{site-base}}/images/pendulum.gif" alt="A chaotic double pendulum tracing its path" loading="lazy" width="480">
+        <figcaption>double-pendulum &middot; 59 fps</figcaption>
+      </a>
+      <a class="demo" href="{{site-base}}/guide/porting-an-example.html">
+        <img src="{{site-base}}/images/epicycles.gif" alt="Fourier epicycles drawing a square wave" loading="lazy" width="480">
+        <figcaption>fourier-epicycles &middot; 59 fps</figcaption>
+      </a>
+      <a class="demo" href="{{site-base}}/guide/performance-on-a-phone.html">
+        <img src="{{site-base}}/images/tree.gif" alt="A binary fractal tree swaying" loading="lazy" width="480">
+        <figcaption>fractal-tree &middot; 59 fps</figcaption>
+      </a>
+      <a class="demo" href="{{site-base}}/guide/performance-on-a-phone.html">
+        <img src="{{site-base}}/images/stars.gif" alt="A starfield flying toward the viewer" loading="lazy" width="480">
+        <figcaption>starfield &middot; 58 fps</figcaption>
+      </a>
+      <a class="demo" href="{{site-base}}/images/hilbert.png">
+        <img src="{{site-base}}/images/thumbs/hilbert.png" alt="A Hilbert space-filling curve" loading="lazy" width="480">
+        <figcaption>hilbert-curve &middot; 1023 lines at 60 fps</figcaption>
+      </a>
+      <a class="demo" href="{{site-base}}/guide/porting-an-example.html">
+        <img src="{{site-base}}/images/lsystem.gif" alt="An L-system plant growing segment by segment" loading="lazy" width="480">
+        <figcaption>l-system &middot; 1488 segments at 59 fps</figcaption>
+      </a>
+      <a class="demo" href="{{site-base}}/guide/performance-on-a-phone.html">
+        <img src="{{site-base}}/images/flowfield.gif" alt="Particles following a drifting flow field" loading="lazy" width="480">
+        <figcaption>flow-field &middot; 54 fps, tuned down from 32</figcaption>
+      </a>
+      <a class="demo" href="{{site-base}}/guide/performance-on-a-phone.html">
+        <img src="{{site-base}}/images/lorenz.gif" alt="The Lorenz attractor, camera orbiting a 450-point trail" loading="lazy" width="480">
+        <figcaption>lorenz &middot; 58 fps, and where the budget rule broke</figcaption>
+      </a>
+      <a class="demo" href="{{site-base}}/guide/porting-an-example.html">
+        <img src="{{site-base}}/images/tesseract.gif" alt="A rotating 4D hypercube projected to the screen" loading="lazy" width="480">
+        <figcaption>tesseract &middot; 32 edges, the cheapest scene here</figcaption>
+      </a>
+      <a class="demo" href="{{site-base}}/images/penrose.png">
+        <img src="{{site-base}}/images/thumbs/penrose.png" alt="A Penrose P3 tiling by deflation" loading="lazy" width="480">
+        <figcaption>penrose &middot; 57 fps</figcaption>
+      </a>
+      <a class="demo" href="{{site-base}}/images/following-eyes.png">
+        <img src="{{site-base}}/images/thumbs/following-eyes.png" alt="Two eyes whose pupils follow a finger" loading="lazy" width="480">
+        <figcaption>following-eyes &middot; unchanged from Android</figcaption>
+      </a>
+      <a class="demo" href="{{site-base}}/images/touch-trail.png">
+        <img src="{{site-base}}/images/thumbs/touch-trail.png" alt="A fading trail following the primary pointer" loading="lazy" width="480">
+        <figcaption>touch-trail &middot; unchanged from Android</figcaption>
+      </a>
+      <a class="demo" href="{{site-base}}/images/gallery.png">
+        <img src="{{site-base}}/images/thumbs/gallery.png" alt="The category screen" loading="lazy" width="480">
+        <figcaption>the gallery &middot; two levels</figcaption>
+      </a>
+    </div>
+    <p>
+      generative 6 &middot; fractals 3 &middot; toys 5 &middot; games 1 &middot; three of them byte-identical to the
+      Android originals. <em>Every image and every frame rate on this page was
+      measured by the iOS sibling, on an iPhone 17 Pro over portable bytecode,
+      and none of it has been taken again on Android — the scenes are the same
+      files, so they are what to compare against. Nobody touched the device for
+      any of them: Flappy Bird is flapped by a loop running inside the app,
+      started from the nREPL. The bezel is an iPhone Mirroring window's
+      own.</em>
+    </p>
+
+    <table>
+      <thead><tr><th>Scene</th><th>Per frame</th><th>fps</th></tr></thead>
+      <tbody>
+        <tr><td>Kaleidoscope</td><td>708 lines</td><td>58</td></tr>
+        <tr><td>Fireworks</td><td>~120 circles</td><td>58</td></tr>
+        <tr><td>Penrose</td><td>340 triangles, ~2400 FFI calls</td><td>57</td></tr>
+        <tr><td>Spirograph</td><td>~1000 lines</td><td>55</td></tr>
+        <tr><td>Boids</td><td>2025 distance tests</td><td>52</td></tr>
+        <tr><td>Flappy Bird, Following Eyes, Touch Trail</td><td>byte-identical from Android</td><td>58</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="quickstart" class="surface">
+  <div class="inner">
+    <h2>Quickstart</h2>
+    <pre><code class="sh">jolt test                                  # 35 tests on the host, no device needed
+jolt deps                                  # the pinned raylib source
+jolt pack                                  # Chez, cross-built for Bionic. once, ~15 min
+
+jolt release                               # raylib.gallery, no nREPL
+jolt deploy
+jolt log                                   # the console this app has
+
+jolt live                                  # the gallery with an nREPL, on --dev
+tools/android/nrepl repl 7888</code></pre>
+    <p>
+      Needs jolt 0.8.1+, JDK 17 with Gradle 8.9+, an Android SDK and NDK, and
+      an arm64 device. Chez Scheme is not a prerequisite: <code>pack.sh</code>
+      clones the pinned 10.4.1 and cross-builds it. No private repositories,
+      and the default build has no dependencies at all.
+    </p>
+  </div>
+</section>
+{% endblock %}

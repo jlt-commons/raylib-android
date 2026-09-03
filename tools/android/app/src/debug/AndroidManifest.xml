@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Debug only. INTERNET is what jolt.nrepl needs to bind the phone's
+     127.0.0.1:7888, which `jolt proxy` then forwards over adb.
+
+     This file is the structural half of the promise raylib.live's docstring
+     makes: a release APK is merged from src/main alone, so it cannot open a
+     socket even if a listener somehow reached its image — and main.c refuses
+     to run a release image that carries the debug entry point at all. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+  <uses-permission android:name="android.permission.INTERNET" />
+</manifest>

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The release manifest. NativeActivity is the whole app: android:hasCode is
+     false because there is no Java or Kotlin here at all, only libmain.so and
+     the Jolt library it dlopens.
+
+     The fullscreen theme deliberately does NOT opt into
+     android:windowLayoutInDisplayCutoutMode="shortEdges". Under the default
+     cutout mode Android lays a window with hidden system bars out clear of the
+     cutout, so the app never has to dodge one: raylib.host reports
+     :inset-top 0 and means it. The iOS host had to ask UIKit for
+     safeAreaInsets on its first frame to get the same guarantee.
+
+     configChanges keeps the activity alive across a rotation or a screen lock
+     instead of destroying and recreating it, which for a NativeActivity means
+     the Chez heap survives — rcore_android.c's own comment asks for exactly
+     this list. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+  <uses-feature android:glEsVersion="0x00020000" android:required="true" />
+
+  <application
+      android:hasCode="false"
+      android:label="raylib"
+      android:allowBackup="false"
+      android:theme="@android:style/Theme.DeviceDefault.NoActionBar.Fullscreen">
+    <activity
+        android:name="android.app.NativeActivity"
+        android:configChanges="orientation|screenSize|keyboardHidden"
+        android:screenOrientation="portrait"
+        android:exported="true">
+      <meta-data android:name="android.app.lib_name" android:value="main" />
+      <intent-filter>
+        <action android:name="android.intent.action.MAIN" />
+        <category android:name="android.intent.category.LAUNCHER" />
+      </intent-filter>
+    </activity>
+  </application>
+</manifest>

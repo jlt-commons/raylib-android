@@ -1,0 +1,97 @@
+{:paths ["src"]
+
+ ;; No dependencies at all, and that is the point.
+ ;;
+ ;; raylib is compiled from a pinned source tree by the APK's own CMake build
+ ;; (tools/android/app/src/main/cpp/CMakeLists.txt) and linked STATICALLY into
+ ;; libmain.so, the NativeActivity library. There is no libraylib.so in the
+ ;; APK, so a :jolt/native entry naming one — which is what both published
+ ;; raylib bindings declare — would be actively wrong here: jolt loads a
+ ;; dependency's natives transitively, before any namespace, and hard-fails
+ ;; when one is missing.
+ ;;
+ ;; The raylib surface this project calls -- some forty functions -- is
+ ;; declared inline in raylib.host, mirroring what the demo did. Taking
+ ;; jlt-commons/raylib-jlt as a real dependency would mean dealing with its own
+ ;; :jolt/native declaration; jolt's `:process true` is the door if the other
+ ;; four hundred functions are ever wanted.
+ ;; The default build has no dependencies. See the :cider alias for the one
+ ;; optional exception, which is opt-in precisely so this line stays true.
+ :deps {}
+
+ ;; libmain.so IS the process image on Android: raylib's android_main lives
+ ;; there and calls this library's exports through jolt_lookup, so every raylib
+ ;; symbol a defcfn names is already loaded. Naming it here makes Chez resolve
+ ;; against that image rather than the global scope, which is not guaranteed to
+ ;; contain it — main.c dlopens this library RTLD_LOCAL. dlopen of an
+ ;; already-loaded soname returns the existing handle, so this costs nothing at
+ ;; run time, and dlsym searches libmain.so's DT_NEEDED list too, which is how
+ ;; __android_log_write resolves out of liblog.so.
+ ;;
+ ;; :optional true so the namespaces still LOAD on a build host that has no
+ ;; libmain.so — which is every build host, since jolt build loads every
+ ;; namespace while emitting it.
+ :jolt/native [{:name "raylib, in the NativeActivity image"
+                :linux ["libmain.so"]
+                :optional true}]
+
+ ;; 0.8.0 swapped ffi/write's (p t offset v) for (p t v offset), and the two
+ ;; cannot be told apart at runtime -- both arguments are integers, so an older
+ ;; jolt would write the wrong byte to the wrong place in silence rather than
+ ;; refuse. 0.8.1 is the floor rather than 0.8.0 because the Android build is a
+ ;; `--library` cross-compile of a source-mode image, and jolt#756 -- fixed in
+ ;; 0.8.1 -- left jolt.ffi's own Clojure layer interned but UNBOUND in exactly
+ ;; that combination. The Android experiment this port follows had to carry a
+ ;; patch for it.
+ :jolt/min-version "0.8.1"
+
+ :aliases
+ {:test {:extra-paths ["test"]
+         :main-opts ["-m" "raylib.test-runner"]}
+
+  ;; The cider-nrepl op set for raylib.live-cider: completions, info, eldoc,
+  ;; the namespace browser, macroexpansion, apropos, the test ops. Scoped to an
+  ;; alias so the default build stays dependency-free; jolt-lang/nrepl brings
+  ;; orchard, compliment and spec.alpha, and about six megabytes.
+  ;;
+  ;; Its own :jolt/native is {:name "libc (POSIX sockets)" :process true},
+  ;; which is the right shape here too: :process true resolves against the
+  ;; already-loaded image, and on Android that is Bionic's libc inside the app.
+  :cider {:extra-deps {io.github.jolt-lang/nrepl {:git/tag "v0.1.1"
+                                                  :git/sha "9cc45ac"}}}}
+
+ :tasks
+ {;; the pinned raylib source tree the APK's CMake compiles. Downloads once.
+  deps    "sh tools/android/deps.sh"
+  ;; the Chez tarm64le target pack: boots, a -fPIC kernel, the cross xpatch.
+  ;; Slow the first time (~15 min, mostly Chez), cached after.
+  pack    "sh tools/android/pack.sh"
+  ;; cross-compile NS into libjoltraylib.so and assemble the APK. Debug by
+  ;; default: raylib.live, --dev, an nREPL and the INTERNET permission.
+  ;; NS=raylib.touch jolt build-app
+  build-app "sh tools/android/build.sh"
+  ;; the same for release: raylib.gallery, no listener, no debug export.
+  ;; A separate task rather than an argument because a jolt task takes none --
+  ;; `jolt build-app release` runs build.sh with no arguments at all and
+  ;; quietly builds debug. MODE=release also works, on either task.
+  release "sh tools/android/build.sh release"
+  ;; adb install and launch on the device. SERIAL=<serial> jolt deploy,
+  ;; MODE=release jolt deploy for the other variant.
+  deploy  "sh tools/android/deploy.sh"
+  ;; the app's own logcat, which is where every diagnostic goes: an Android
+  ;; app's stdout is discarded, so raylib.host/log writes to the log instead.
+  log     "sh tools/android/log.sh"
+  ;; the pure namespaces, on the host: no raylib, no device
+  test    "jolt -M:test"
+  ;; the gallery plus an nREPL, for driving a running app from an editor.
+  ;; Debug only: Play's Device and Network Abuse policy treats downloaded
+  ;; executable code as a violation, and a release build carries no listener.
+  live    "sh tools/android/live.sh"
+  ;; jolt.nrepl binds loopback only, so reach it by forwarding the device's
+  ;; 7888 to this machine's 7888 over adb. Refuses to bind beside a process
+  ;; that already holds the local port, because forwarding onto one sends
+  ;; evals to THAT process and its answers look entirely plausible.
+  ;; LOCAL_PORT and DEVICE_PORT override.
+  proxy   "sh tools/android/proxy.sh"
+  ;; what deploy would talk to, and whether each one is authorised
+  devices "sh tools/android/devices.sh"}}

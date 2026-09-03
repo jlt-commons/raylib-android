@@ -1,0 +1,17 @@
+.DS_Store
+.jolt
+.lsp
+.cpcache
+.clj-kondo/.cache
+.nrepl-history
+.nrepl-port
+# Gradle's output and the cross-compiled library staged into it. Nothing under
+# tools/android/app/build or app/src/*/jniLibs is source; tools/android has its
+# own .gitignore too, and these repeat it for anyone running gradle by hand.
+.gradle/
+tools/android/build/
+tools/android/app/build/
+tools/android/app/src/debug/jniLibs/
+tools/android/app/src/release/jniLibs/
+tools/android/local.properties
+_site/
