@@ -1,10 +1,15 @@
 #!/usr/bin/env bash
 # Assertions this project's documentation build must satisfy.
 #
-# Run by the shared site workflow in jlt-commons/ci-builds against the freshly
-# built _site, with BASE_PATH exported.
+# NOTHING IN CI RUNS THIS at the moment. The site workflow that did -- a call
+# into the shared one in jlt-commons/ci-builds -- was removed while this
+# repository is private, because GitHub Pages is unavailable for a private
+# repository on this plan and its deploy job therefore failed on every push.
+# Restoring it means restoring .github/workflows/site.yml, which is one call to
+# jlt-commons/ci-builds/.github/workflows/site.yml@main with
+# base-path: /raylib-android.
 #
-# Run it locally the same way, from a docs-engine checkout:
+# So run it by hand, from a docs-engine checkout:
 #   bb build <path to this repo> && cd <this repo> \
 #     && BASE_PATH=/raylib-android bash docs/check-site.sh
 

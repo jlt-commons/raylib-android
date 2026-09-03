@@ -2,9 +2,13 @@
 ;; docs-engine (https://github.com/jlt-commons/docs-engine).
 ;;
 ;; Build it locally from a docs-engine checkout with `bb build <this repo>`,
-;; or `bb serve <this repo>` to preview. CI builds and publishes it from
-;; .github/workflows/site.yml, which calls the shared workflow in
-;; jlt-commons/ci-builds.
+;; or `bb serve <this repo>` to preview.
+;;
+;; NOTHING PUBLISHES IT at the moment. The workflow that did was removed while
+;; this repository is private: GitHub Pages is unavailable for a private
+;; repository on this plan, so its deploy step failed on every push. This file
+;; and everything it configures are kept ready for the day it is restored,
+;; which is one call to jlt-commons/ci-builds/.github/workflows/site.yml@main.
 {;; :base-path is what makes this a project site rather than an org one. The
  ;; site is served at https://jlt-commons.github.io/raylib-android/, so every URL
  ;; the engine emits needs that prefix. Leave it out and the pages still

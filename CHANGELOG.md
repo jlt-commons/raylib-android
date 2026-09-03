@@ -66,6 +66,11 @@ the glass is new. Not yet run on hardware — see the note at the top of
   inherits none, and Intent extras do not reach a NativeActivity's C `main`.
 - **The docs, the site and CI** are `raylib-android`, base path included.
   Every image and frame time still comes from the iPhone and now says so.
+- **The site publishing workflow is gone for now.** GitHub Pages is
+  unavailable for a private repository on this plan, so the shared workflow's
+  deploy job failed on every push while its build passed. `docs/site.edn`,
+  `docs/templates/` and `docs/check-site.sh` are untouched and ready for the
+  day it is restored; `docs/check-site.sh` says how.
 
 ### Removed
 
