@@ -5,13 +5,26 @@
 # something a runner cannot check anyway, since nothing in CI can put a frame
 # on a phone. The scenes are pure .cljc precisely so their behaviour is
 # testable without any of it, and the rest is proven by running on hardware.
-name: test
+name: CI
 
 on:
   push:
     branches: [main]
   pull_request:
   workflow_dispatch:
+    inputs:
+      jolt-version:
+        description: "jolt to test under (blank = the pinned JOLT_VERSION below)"
+        required: false
+        default: ""
+
+# jolt is the runtime this project actually ships on (the Android build is a
+# `jolt build-app` cross-compile), and jlt-commons/ci-builds dispatches this
+# workflow with a jolt-version input to test the whole fleet against a
+# candidate release before it lands anywhere. Matches deps.edn's own
+# :jolt/min-version floor.
+env:
+  JOLT_VERSION: ${{ inputs.jolt-version || '0.8.1' }}
 
 jobs:
   test:
@@ -36,6 +49,28 @@ jobs:
 
       - name: Test
         run: clojure -M:test
+
+  jolt:
+    name: tests on jolt ${{ inputs.jolt-version || '0.8.1' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install jolt
+        run: |
+          set -euo pipefail
+          : "${JOLT_VERSION:?empty; the workflow-level pin did not resolve}"
+          curl -sSL https://raw.githubusercontent.com/jolt-lang/jolt/main/install \
+            | bash -s -- --version "$JOLT_VERSION"
+          jolt --version
+
+      # deps.edn's own `test` task ("jolt -M:test") is exactly this: the pure
+      # namespaces, on the host, no raylib and no device. This is the run
+      # that matters -- the JVM job above catches ordinary Clojure mistakes,
+      # not a jolt-specific divergence, which is the whole reason ci-builds
+      # fans a candidate jolt across every project here.
+      - name: Test under jolt
+        run: jolt -M:test
 
   lint:
     runs-on: ubuntu-latest
