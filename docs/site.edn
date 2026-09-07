@@ -15,9 +15,12 @@
  :title       "raylib-android"
  :description "raylib on an Android phone, driven from Clojure on Chez Scheme via Jolt. Seventeen scenes as native arm64 code in a NativeActivity, with no JVM, no Kotlin and no Java in the app."
 
- ;; docs/images holds the GIFs and stills, referenced from the homepage and
- ;; the guides. Without this the pages render with every image broken, and the
- ;; engine only warns about a missing asset dir, so docs/check-site.sh turns
+ ;; docs/images holds the raylib-ios captures this project ported from.
+ ;; Nothing in the homepage or the guides shows them any more (they were
+ ;; screenshots of a different build, not this one, and got pulled once that
+ ;; stopped being clearly labelled), but the dir stays configured so an
+ ;; Android capture dropped in here later just works. Without this line the
+ ;; engine only warns about a missing asset dir; docs/check-site.sh turns
  ;; that into an error.
  :asset-dirs  ["images"]
 
