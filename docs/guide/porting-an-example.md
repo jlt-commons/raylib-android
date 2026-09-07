@@ -4,10 +4,10 @@
 examples. 48 of them need no input at all, and those port almost mechanically.
 This is what "almost" means, worked through with the five that are done.
 
-![Spirograph](../images/spirograph.png)
-
-*spirograph, the first port. Same maths as the original, a screen 1206x2622
-instead of 800x450, and a loop it no longer owns.*
+Same maths as the original, a screen 1206x2622 instead of 800x450, and a loop
+it no longer owns. (No screenshot: every capture in this guide was
+raylib-ios's, the sibling build this project was ported from, not this one's,
+and they're dropped until there's a real Android capture to show.)
 
 ## They are desktop-shaped in two ways
 
@@ -86,14 +86,6 @@ most of the collection. Of eight further candidates surveyed, seven need
 nothing new at all; only `analog_clock` does, wanting `DrawLineEx`, `DrawRing`
 and a local-time call. Penrose needed rlgl immediate mode only because it fills
 polygons and raylib's shapes API has no call for that.
-
-<img src="../images/kaleidoscope.gif" width="220" alt="Kaleidoscope">
-<img src="../images/spirograph.gif" width="220" alt="Spirograph">
-<img src="../images/boids.gif" width="220" alt="Boids">
-<img src="../images/fireworks.gif" width="220" alt="Fireworks">
-
-*Three of the five ports, running on the phone. None of them needed a single
-new raylib binding.*
 
 ## Then measure it, because the port is the easy half
 
