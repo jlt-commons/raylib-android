@@ -4,45 +4,23 @@ raylib on an Android phone, driven from Clojure by
 [jolt](https://github.com/jolt-lang/jolt), as native arm64 code with no JVM,
 no Kotlin and no Java anywhere in the app.
 
-What runs today: a gallery of seventeen scenes in four categories, each one a
-pure `.cljc` simulation, under an Android owner loop of about thirty lines.
-Tap a card to open a scene; Back walks one level up and quits from the top. The
-bird flaps on a press edge.
+**Work in progress: this has not yet been run on Android hardware.** The
+RUNBOOK says the same thing at the top, for the same reason: what follows
+below is read off the pinned raylib source and the code in this tree, not
+measured on a phone.
 
-<p>
-  <a href="docs/images/gallery.png"><img src="docs/images/thumbs/gallery.png" width="200" alt="The category screen"></a>
-  <a href="docs/images/spirograph.png"><img src="docs/images/thumbs/spirograph.png" width="200" alt="Spirograph"></a>
-  <a href="docs/images/penrose.png"><img src="docs/images/thumbs/penrose.png" width="200" alt="Penrose P3 tiling"></a>
-  <a href="docs/images/kaleidoscope.png"><img src="docs/images/thumbs/kaleidoscope.png" width="200" alt="Kaleidoscope"></a>
-</p>
-<p>
-  <a href="docs/images/boids.png"><img src="docs/images/thumbs/boids.png" width="200" alt="Boids"></a>
-  <a href="docs/images/fireworks.png"><img src="docs/images/thumbs/fireworks.png" width="200" alt="Fireworks"></a>
-  <a href="docs/images/flappy-bird.png"><img src="docs/images/thumbs/flappy-bird.png" width="200" alt="Flappy Bird"></a>
-</p>
+What exists today: a gallery of seventeen scenes in four categories, each one
+a pure `.cljc` simulation, under an Android owner loop of about thirty lines.
+The scene contract is tested on the build host (`jolt test`, no device
+needed). Tap-to-open, Back walking one level up, the bird flapping on a press
+edge: the code is written to do all of that, and none of it has a phone
+behind it yet.
 
-<p>
-  <img src="docs/images/spirograph.gif" width="200" alt="Spirograph drawing itself">
-  <img src="docs/images/kaleidoscope.gif" width="200" alt="Kaleidoscope">
-  <img src="docs/images/fireworks.gif" width="200" alt="Fireworks">
-  <img src="docs/images/boids.gif" width="200" alt="Boids flocking">
-  <img src="docs/images/flappy-bird.gif" width="200" alt="Flappy Bird, flapped over the nREPL">
-</p>
-<p>
-  <img src="docs/images/pendulum.gif" width="200" alt="A chaotic double pendulum">
-  <img src="docs/images/epicycles.gif" width="200" alt="Fourier epicycles drawing a square wave">
-  <img src="docs/images/tree.gif" width="200" alt="A fractal tree swaying">
-  <img src="docs/images/stars.gif" width="200" alt="A starfield">
-  <img src="docs/images/lsystem.gif" width="200" alt="An L-system plant growing">
-  <img src="docs/images/flowfield.gif" width="200" alt="Particles in a flow field">
-</p>
-<p>
-  <img src="docs/images/lorenz.gif" width="200" alt="The Lorenz attractor, camera orbiting">
-  <img src="docs/images/tesseract.gif" width="200" alt="A rotating 4D hypercube">
-</p>
-
-*Captured off the sibling build this was ported from, since the host here has
-not met a device yet. The scenes are the same files.*
+There are no screenshots here yet, for the same reason: nothing has run on
+Android to photograph honestly. The scenes are the same pure `.cljc` files as
+[raylib-ios](https://github.com/jlt-commons/raylib-ios), the sibling project
+this tree was ported from. That README has captures of what they draw, and
+this section gets real Android ones once this build has actually met a phone.
 
 Licensed [zlib](LICENSE), matching raylib and
 [raylib-jlt](https://github.com/jlt-commons/raylib-jlt). Third-party code and
@@ -403,8 +381,8 @@ for one is pending, so the zlib licence above does not cover those parts.
 - [statonjr/glimmer-ios-demo](https://github.com/statonjr/glimmer-ios-demo):
   the owner loop's shape, the scene ports and most of the traps.
 - [jlt-commons/raylib-ios](https://github.com/jlt-commons/raylib-ios): the
-  seventeen scenes, the `GetFPS` finding, the performance guide and the
-  captures above.
+  seventeen scenes, the `GetFPS` finding, the performance guide and the only
+  captures anyone has taken of them so far.
 - [raylib](https://github.com/raysan5/raylib) at
   `9f3cadf1e618f125bd9b282c7759f8cb26ce17fc`, which calls itself `6.1-dev`.
   Pinned by revision rather than by tag because the host's comments cite
