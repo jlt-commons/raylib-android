@@ -29,6 +29,12 @@ jobs:
     uses: jlt-commons/ci-builds/.github/workflows/site.yml@main
     with:
       base-path: /raylib-android
+      # v0.3.0 adds the default Contributing page every project's guide
+      # now gets (docs-engine README, "The default Contributing page").
+      # Pinned explicitly rather than left on the shared workflow's own
+      # default so this project's build stays reproducible even after
+      # that default moves again.
+      docs-engine-ref: v0.3.0
     permissions:
       contents: read
       pages: write
