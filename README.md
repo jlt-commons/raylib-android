@@ -9,6 +9,12 @@ RUNBOOK says the same thing at the top, for the same reason: what follows
 below is read off the pinned raylib source and the code in this tree, not
 measured on a phone.
 
+These docs are also a moving target. Jolt and the libraries this project
+sits on (raylib-jlt, jolt-lang/nrepl, the pinned raylib revision) are still
+evolving, so a detail here can go stale between one release and the next.
+Check the version pins in `deps.edn` against what you actually have
+installed before assuming a mismatch is a bug in this repository.
+
 What exists today: a gallery of seventeen scenes in four categories, each one
 a pure `.cljc` simulation, under an Android owner loop of about thirty lines.
 The scene contract is tested on the build host (`jolt test`, no device
@@ -356,6 +362,13 @@ every frame — `raylib.flappy` and `raylib.touch` — were always fine.
   the display size over a zero screen size, leaves render equal to screen and
   both offsets at 0 — so the screen is the native window in physical pixels
   and nothing scales. Ask for a size instead and raylib letterboxes into it.
+
+## Contributing
+
+This is built by the community and the team behind it, and a suggestion for
+improvement or a "this is missing" is exactly the kind of thing to open an
+issue about. See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the etiquette we
+ask discussion and pull requests to follow, adapted from Clojure's own.
 
 ## Licence
 
