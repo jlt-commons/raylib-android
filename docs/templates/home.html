@@ -13,9 +13,15 @@
       dependencies.
     </p>
     <p class="tagline">
-      <em>The captures below come off the sibling build this was ported from;
-      the scenes are the same files. This host has not yet met an Android
-      device, and no frame time here was measured on one.</em>
+      <strong>Work in progress: this has not yet been run on Android
+      hardware.</strong> What follows is read off the pinned raylib source
+      and the code in this tree, not measured on a phone.
+    </p>
+    <p class="tagline">
+      <em>These docs are also a moving target: Jolt and the libraries this
+      project sits on (raylib-jlt, jolt-lang/nrepl, the pinned raylib
+      revision) are still evolving, so a detail here can go stale between
+      one release and the next.</em>
     </p>
     <div class="hero-actions">
       <a class="btn btn-primary" href="{{site-base}}/guide/porting-an-example.html">Read the guide</a>
@@ -127,101 +133,17 @@ flowchart LR
       itself. The other fourteen are ports from
       <a href="https://github.com/jlt-commons/raylib-jlt">raylib-jlt</a>.
     </p>
-    <div class="demo-grid">
-      <a class="demo" href="{{site-base}}/guide/porting-an-example.html">
-        <img src="{{site-base}}/images/spirograph.gif" alt="A hypotrochoid drawing itself in rainbow lines" loading="lazy" width="480">
-        <figcaption>spirograph &middot; 55 fps</figcaption>
-      </a>
-      <a class="demo" href="{{site-base}}/guide/performance-on-a-phone.html">
-        <img src="{{site-base}}/images/kaleidoscope.gif" alt="A stroke mirrored into six-fold symmetry" loading="lazy" width="480">
-        <figcaption>kaleidoscope &middot; 58 fps</figcaption>
-      </a>
-      <a class="demo" href="{{site-base}}/guide/porting-an-example.html">
-        <img src="{{site-base}}/images/fireworks.gif" alt="Rockets bursting into falling sparks" loading="lazy" width="480">
-        <figcaption>fireworks &middot; 58 fps</figcaption>
-      </a>
-      <a class="demo" href="{{site-base}}/guide/porting-an-example.html">
-        <img src="{{site-base}}/images/boids.gif" alt="Forty-five boids flocking" loading="lazy" width="480">
-        <figcaption>boids &middot; 52 fps</figcaption>
-      </a>
-      <a class="demo" href="{{site-base}}/images/flappy-bird.png">
-        <img src="{{site-base}}/images/flappy-bird.gif" alt="Flappy Bird, flapped by a loop inside the app" loading="lazy" width="480">
-        <figcaption>flappy-bird &middot; unchanged from Android</figcaption>
-      </a>
-      <a class="demo" href="{{site-base}}/guide/porting-an-example.html">
-        <img src="{{site-base}}/images/pendulum.gif" alt="A chaotic double pendulum tracing its path" loading="lazy" width="480">
-        <figcaption>double-pendulum &middot; 59 fps</figcaption>
-      </a>
-      <a class="demo" href="{{site-base}}/guide/porting-an-example.html">
-        <img src="{{site-base}}/images/epicycles.gif" alt="Fourier epicycles drawing a square wave" loading="lazy" width="480">
-        <figcaption>fourier-epicycles &middot; 59 fps</figcaption>
-      </a>
-      <a class="demo" href="{{site-base}}/guide/performance-on-a-phone.html">
-        <img src="{{site-base}}/images/tree.gif" alt="A binary fractal tree swaying" loading="lazy" width="480">
-        <figcaption>fractal-tree &middot; 59 fps</figcaption>
-      </a>
-      <a class="demo" href="{{site-base}}/guide/performance-on-a-phone.html">
-        <img src="{{site-base}}/images/stars.gif" alt="A starfield flying toward the viewer" loading="lazy" width="480">
-        <figcaption>starfield &middot; 58 fps</figcaption>
-      </a>
-      <a class="demo" href="{{site-base}}/images/hilbert.png">
-        <img src="{{site-base}}/images/thumbs/hilbert.png" alt="A Hilbert space-filling curve" loading="lazy" width="480">
-        <figcaption>hilbert-curve &middot; 1023 lines at 60 fps</figcaption>
-      </a>
-      <a class="demo" href="{{site-base}}/guide/porting-an-example.html">
-        <img src="{{site-base}}/images/lsystem.gif" alt="An L-system plant growing segment by segment" loading="lazy" width="480">
-        <figcaption>l-system &middot; 1488 segments at 59 fps</figcaption>
-      </a>
-      <a class="demo" href="{{site-base}}/guide/performance-on-a-phone.html">
-        <img src="{{site-base}}/images/flowfield.gif" alt="Particles following a drifting flow field" loading="lazy" width="480">
-        <figcaption>flow-field &middot; 54 fps, tuned down from 32</figcaption>
-      </a>
-      <a class="demo" href="{{site-base}}/guide/performance-on-a-phone.html">
-        <img src="{{site-base}}/images/lorenz.gif" alt="The Lorenz attractor, camera orbiting a 450-point trail" loading="lazy" width="480">
-        <figcaption>lorenz &middot; 58 fps, and where the budget rule broke</figcaption>
-      </a>
-      <a class="demo" href="{{site-base}}/guide/porting-an-example.html">
-        <img src="{{site-base}}/images/tesseract.gif" alt="A rotating 4D hypercube projected to the screen" loading="lazy" width="480">
-        <figcaption>tesseract &middot; 32 edges, the cheapest scene here</figcaption>
-      </a>
-      <a class="demo" href="{{site-base}}/images/penrose.png">
-        <img src="{{site-base}}/images/thumbs/penrose.png" alt="A Penrose P3 tiling by deflation" loading="lazy" width="480">
-        <figcaption>penrose &middot; 57 fps</figcaption>
-      </a>
-      <a class="demo" href="{{site-base}}/images/following-eyes.png">
-        <img src="{{site-base}}/images/thumbs/following-eyes.png" alt="Two eyes whose pupils follow a finger" loading="lazy" width="480">
-        <figcaption>following-eyes &middot; unchanged from Android</figcaption>
-      </a>
-      <a class="demo" href="{{site-base}}/images/touch-trail.png">
-        <img src="{{site-base}}/images/thumbs/touch-trail.png" alt="A fading trail following the primary pointer" loading="lazy" width="480">
-        <figcaption>touch-trail &middot; unchanged from Android</figcaption>
-      </a>
-      <a class="demo" href="{{site-base}}/images/gallery.png">
-        <img src="{{site-base}}/images/thumbs/gallery.png" alt="The category screen" loading="lazy" width="480">
-        <figcaption>the gallery &middot; two levels</figcaption>
-      </a>
-    </div>
     <p>
-      generative 6 &middot; fractals 3 &middot; toys 5 &middot; games 1 &middot; three of them byte-identical to the
-      Android originals. <em>Every capture and every frame rate on this page
-      came off the sibling build this was ported from, not off an Android
-      device — the scenes are the same files, so they are what to compare
-      against rather than what to quote. Nobody touched the device for any of
-      them: Flappy Bird is flapped by a loop running inside the app, started
-      from the nREPL.</em>
+      There are no screenshots here yet, for the same reason there are none
+      in the README: nothing has run on Android to photograph honestly. Every
+      capture that stood here before was a real screen recording, phone
+      status bar and all, but of <a
+      href="https://github.com/jlt-commons/raylib-ios">raylib-ios</a>, the
+      sibling project this tree was ported from, not of this build. That
+      project's own site has the captures and frame rates for what the
+      scenes draw, and this section gets real Android ones once this build
+      has actually met a phone.
     </p>
-
-    <table>
-      <thead><tr><th>Scene</th><th>Per frame</th><th>fps</th></tr></thead>
-      <tbody>
-        <tr><td>Kaleidoscope</td><td>708 lines</td><td>58</td></tr>
-        <tr><td>Fireworks</td><td>~120 circles</td><td>58</td></tr>
-        <tr><td>Penrose</td><td>340 triangles, ~2400 FFI calls</td><td>57</td></tr>
-        <tr><td>Spirograph</td><td>~1000 lines</td><td>55</td></tr>
-        <tr><td>Boids</td><td>2025 distance tests</td><td>52</td></tr>
-        <tr><td>Flappy Bird, Following Eyes, Touch Trail</td><td>byte-identical from Android</td><td>58</td></tr>
-      </tbody>
-    </table>
   </div>
 </section>
 

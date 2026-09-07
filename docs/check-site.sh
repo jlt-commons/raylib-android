@@ -41,12 +41,12 @@ for page in performance-on-a-phone porting-an-example; do
   test -f "$out/guide/$page.html" || { echo "missing guide page: $page"; exit 1; }
 done
 
-# The homepage links every scene, and the two most recent are the ones most
-# likely to be forgotten when the grid is edited.
-for img in lorenz.gif tesseract.gif; do
-  grep -q "$img" "$out/index.html" || { echo "homepage does not show $img"; exit 1; }
-  test -f "$out/images/$img"       || { echo "missing image: $img"; exit 1; }
-done
+# The homepage used to embed a scene grid, and this checked the two most
+# recent scenes stayed in it when the grid was edited. The grid is gone for
+# now: every one of those captures was a real raylib-ios screen recording,
+# not an Android one, and the homepage says so instead of showing them. Bring
+# this check back, naming whichever scenes are newest at the time, once the
+# grid comes back with real Android captures.
 
 # The base path has to reach the emitted HTML, not just site.edn. Getting this
 # wrong is the failure mode the engine's own README calls out: the pages render
