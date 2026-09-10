@@ -24,7 +24,7 @@ on:
 # candidate release before it lands anywhere. Matches deps.edn's own
 # :jolt/min-version floor.
 env:
-  JOLT_VERSION: ${{ inputs.jolt-version || '0.8.1' }}
+  JOLT_VERSION: ${{ inputs.jolt-version || '0.8.6' }}
 
 jobs:
   test:
@@ -51,7 +51,7 @@ jobs:
         run: clojure -M:test
 
   jolt:
-    name: tests on jolt ${{ inputs.jolt-version || '0.8.1' }}
+    name: tests on jolt ${{ inputs.jolt-version || '0.8.6' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
