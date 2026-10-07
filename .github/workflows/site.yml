@@ -29,6 +29,7 @@ jobs:
     uses: jlt-commons/ci-builds/.github/workflows/site.yml@main
     with:
       base-path: /raylib-android
+      # v0.4.3 escapes a bare < the way GitHub does.
       # v0.4.2 closes search on Tab-out and titles untitled pages by slug.
       # v0.4.1 adds nav search (search-documents.json + lazily loaded lunr);
       # v0.3.1 heading anchors, v0.3.2 the jolt build/clean fix.
@@ -37,7 +38,7 @@ jobs:
       # Pinned explicitly rather than left on the shared workflow's own
       # default so this project's build stays reproducible even after
       # that default moves again.
-      docs-engine-ref: v0.4.2
+      docs-engine-ref: v0.4.3
     permissions:
       contents: read
       pages: write
