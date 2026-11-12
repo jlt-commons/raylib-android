@@ -28,9 +28,8 @@ Android to photograph honestly. The scenes are the same pure `.cljc` files as
 this tree was ported from. That README has captures of what they draw, and
 this section gets real Android ones once this build has actually met a phone.
 
-Licensed [zlib](LICENSE), matching raylib and
-[raylib-jlt](https://github.com/jlt-commons/raylib-jlt). Third-party code and
-attribution are in [`NOTICE`](NOTICE).
+Licensed [EPL 2.0](LICENSE), like jolt and the iOS sibling. Third-party code
+and attribution are in [`NOTICE`](NOTICE).
 
 ## Where the code came from
 
@@ -372,14 +371,15 @@ ask discussion and pull requests to follow, adapted from Clojure's own.
 
 ## Licence
 
-[zlib](LICENSE), matching
-[raylib-jlt](https://github.com/jlt-commons/raylib-jlt) and raylib. The whole
-stack is zlib.
+[EPL 2.0](LICENSE), like jolt and
+[raylib-ios](https://github.com/jlt-commons/raylib-ios). It was zlib until
+2026-11-12.
 
 Third-party code and attribution are in [`NOTICE`](NOTICE), and it is worth
-reading before you fork. The short version: four namespaces contain material
-from a repository that carries no licence file, published here while a request
-for one is pending, so the zlib licence above does not cover those parts.
+reading before you fork. The short version: files from other projects keep the
+licence they came with, MIT from jasalt and from Larry Staton's
+glimmer-ios-demo, and zlib from raylib-jlt and raylib, and their notices are
+all there.
 
 ## Attribution
 

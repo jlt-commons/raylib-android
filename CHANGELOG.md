@@ -2,6 +2,15 @@
 
 Notable changes, newest first. Dates are the day the work landed.
 
+## 2026-11-12
+
+### Changed
+
+- **EPL 2.0 licence**, in `LICENSE`, replacing zlib, so this repository matches
+  jolt and raylib-ios. Code from other projects keeps its own licence, and
+  `NOTICE` records each one. `NOTICE` also drops the publication blocker, since
+  Larry Staton Jr. put glimmer-ios-demo under MIT on 2026-09-04.
+
 ## 2026-09-03 (Android)
 
 The iOS host is replaced by an Android one. Same seventeen scenes, same pure

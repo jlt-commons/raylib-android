@@ -1,17 +1,22 @@
 # NOTICE
 
-This project is licensed under the zlib licence, in [`LICENSE`](LICENSE),
-matching jlt-commons/raylib-jlt and raylib itself. The whole graphics stack is
-zlib and there is no reason for this to be the exception.
+This project is licensed under the Eclipse Public License 2.0, in
+[`LICENSE`](LICENSE), matching jolt and the jlt-commons default.
 
-That licence covers the work in this repository that is ours to license. It
-does not, on its own, make the repository publishable: some of it is derived
-from a source that grants nothing. See "Open-source status" at the end, which
-is required reading before this repository is made public.
+It was zlib until 2026-11-12, chosen to match jlt-commons/raylib-jlt and raylib
+itself. The iOS sibling, raylib-ios, moved to EPL 2.0 on 2026-09-05, and this
+repository now follows it.
 
-Ownership is a separate question from publication. Transferring this repository
-between accounts or into an organisation is fine while it stays private, and
-does not touch anything below.
+**EPL 2.0 does not relicense anything that arrived under another licence.** It
+cannot: those files are not ours to relicense. The whole is EPL 2.0 and each
+part below keeps what it came with, which is what the rest of this file records.
+The inbound licences here, MIT, zlib and Apache 2.0, are permissive and impose no
+condition that EPL 2.0 conflicts with, so the combination distributes cleanly as
+long as their notices travel with it.
+
+One obligation is worth stating on its own, because it survives the change and
+is easy to lose: zlib requires that altered source versions be plainly marked as
+such. The ports below satisfy it in their docstrings, and they still have to.
 
 ## Carried unchanged
 
@@ -88,99 +93,49 @@ redistributed, but its C kernel and its boot files are compiled into
 `libjoltraylib.so` by `jolt build --library`. Apache 2.0 covers that; jolt's
 EPL applies to jolt's own runtime, which is likewise inside that library.
 
-## Open-source status: BLOCKED, and this is the reason
+## Derived, and licensed
 
-Some files here are substantially derived from statonjr/glimmer-ios-demo, whose
-notebooks this project's own `tools/extract-from-notebooks` reads:
+`src/raylib/host.clj`, `gallery.clj` and `touch.clj` began as derivations of
+statonjr/glimmer-ios-demo, by way of the iOS sibling jlt-commons/raylib-ios.
+Two more files from that line, `link.clj` and `objc.clj`, were deleted in the
+Android port.
 
     https://github.com/statonjr/glimmer-ios-demo
-    verified at 5c7eeb8, 2026-09-03
 
-**That repository carries no licence file**, at any path, on that ref.
+That repository carried no licence when this work started, so default copyright
+applied and nothing derived from it could be published. It was asked for one at
+statonjr/glimmer-ios-demo#1 on 2026-09-03, and **Larry Staton Jr. added the MIT
+licence on 2026-09-04** in commit `a2415eb8`, whose message reads "Add the MIT
+license so derived work can publish". Thank you.
 
-Measured, so the size of the problem is known rather than guessed. The counts
-below were taken by the iOS sibling, jlt-commons/raylib-ios, against the demo
-at 5c7eeb8, counting substantive lines with comments and blank lines excluded.
-The right-hand column is what the Android port did to each file:
+MIT asks that the copyright and permission notice travel with copies, so it is
+reproduced here in full:
 
-| our file | lines | also in the demo | after the Android port |
-|---|---:|---:|---|
-| `src/raylib/host.clj`    | 170 | 130 | rewritten: SDL, UIKit, the framebuffer binding and the safe-area query are all gone |
-| `src/raylib/gallery.clj` | 315 |  83 | unchanged in substance; Back and logging edits only |
-| `src/raylib/touch.clj`   |  35 |  35 | unchanged in substance; logging and Back only |
-| `src/raylib/link.clj`    |  16 |  16 | **deleted** — it probed the two iOS static archives |
-| `src/raylib/probe.clj`   |  53 |   2 | rewritten for GLES on Android |
-| `src/raylib/objc.clj`    |  32 |  13 | **deleted** — there is no Objective-C runtime here |
+    MIT License
 
-Two of the six files are gone, and `host.clj` no longer contains the parts that
-made it iOS-specific: `SDL_UIKitRunApp`, `SDL_GetWindowWMInfo`, the per-frame
-`glBindFramebuffer`, `objc_msgSend` and `safeAreaInsets`. What remains shared
-with the demo is the *shape* of an owner loop — a scene as `{:title :init
-:frame}`, `BeginDrawing`, `(frame state)`, `EndDrawing`, and the live seam of a
-refreshed state atom plus a queue drained on the owner thread.
+    Copyright (c) 2026 Larry Staton Jr.
 
-**That overlap has not been re-measured against the demo**, and the number
-above is therefore an upper bound rather than a count of this tree. It can only
-have fallen. `objc.clj`, when it existed, shared only lines that are also in
-glitter-uikit's own `ffi.clj`, which is MIT and ours.
-`src/raylib/scenes/*.cljc` and `src/poc/**` are clean, being MIT from jasalt and
-zlib from raylib-jlt.
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
 
-With no licence, the default is ordinary copyright: all rights reserved, and no
-permission to copy, modify or redistribute. So the parts that remain derived
-cannot be published, relicensed or moved to an organisation on the strength of
-`LICENSE` alone, however small the diff or generous the intent.
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
 
-Three ways forward, in the order they should be tried:
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
 
-1. **Ask.** A request to add MIT or zlib upstream resolves it completely, costs
-   the author nothing, and is the only option that keeps the attribution
-   honest. The demo is itself built on glitter and glitter-uikit, both MIT and
-   both ours, and it says so warmly throughout its README. Someone writing a
-   demo of your libraries is about as likely to say yes as anyone gets. It was sent on
-   2026-09-03 as statonjr/glimmer-ios-demo#1.
-2. **Rewrite the remaining files** from the public facts rather than from the
-   notebooks: raylib's headers, `src/platforms/rcore_android.c`, the NDK's
-   documentation and this project's own device measurements. The Android port
-   already did most of this incidentally — two of the six files are deleted and
-   `host.clj` was rewritten against `rcore_android.c` — so what is left is
-   `gallery.clj`'s 83 lines, `touch.clj`'s 35, and whatever survives in
-   `host.clj` of the loop's shape.
-3. **Stay private.** No obligation is breached by a private repository, and
-   this is the status quo.
+### What that leaves
 
-Note that the demo's own use of glitter-uikit does not itself settle this.
-MIT is a grant, not a trade: it lets him build on our work without obliging him
-to license his own back. It makes option 1 very likely to land. It is not a
-substitute for it.
-
-## Status, stated plainly
-
-**The iOS sibling was made public on 2026-09-04 with option 1 still pending**,
-and this repository inherits that position. No licence had been granted for the
-derived files at that point, and none had been refused either: the request at
-statonjr/glimmer-ios-demo#1 was simply unanswered.
-
-That is a deliberate decision by this project's author, not an oversight, and
-anyone using this repository should know what it means:
-
-- `src/raylib/host.clj`, `gallery.clj` and `touch.clj` contain material whose
-  copyright belongs to Larry Staton Jr. and which is published here without his
-  express permission. The zlib licence in `LICENSE` cannot grant what this
-  project does not hold, so it does not cover those parts. (`link.clj` and
-  `objc.clj`, the other two, no longer exist in this tree.)
-- If you fork or redistribute this repository, that limitation travels with
-  you. It is not cured by the licence file.
-- If Larry asks for the material to be removed, it will be removed and this
-  section will say so. If he grants a licence, this section will be replaced
-  with the grant and the date.
-
-The other sources are properly licensed and unaffected: jasalt's files under
-MIT, the raylib-jlt ports under zlib, raylib itself under zlib, and the NDK's
-app glue under Apache 2.0.
-
-Option 2 remains the clean fix and the Android port shortened it: two of the
-six files are deleted and `host.clj` was rewritten against
-`rcore_android.c`, leaving `gallery.clj`, `touch.clj` and the loop's shape.
-The presence of a LICENSE file does not change any of it: a licence grants what
-the grantor holds, and this is the one part we do not hold.
+Nothing blocking. EPL 2.0 in `LICENSE` covers this project's own work, MIT
+covers what came from the demo and from jasalt, zlib covers what came from
+raylib-jlt and raylib, Apache 2.0 covers the NDK's app glue, and every one of
+those notices is in this file.
